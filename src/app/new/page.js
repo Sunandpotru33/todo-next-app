@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect } from "react";
 import { useTasks } from "../../context/TasksContext";
 import { useRouter } from "next/navigation";
@@ -12,18 +13,24 @@ const TaskFormPage = ({ params }) => {
     formState: { errors },
     setValue,
   } = useForm();
+
   const { createTask, updateTask, tasks } = useTasks();
   const router = useRouter();
 
-  const onSubmit = handleSubmit((data) => {
-    if (!params.id) {
-      createTask(data.title, data.description);
-      toast.success("Task created successfully");
-    } else {
-      updateTask(params.id, data);
-      toast.success("Task updated successfully");
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+      if (!params.id) {
+        await createTask(data.title, data.description);
+        toast.success("Task created successfully");
+      } else {
+        await updateTask(params.id, data);
+        toast.success("Task updated successfully");
+      }
+      router.push("/");
+    } catch (error) {
+      console.error("Task submission error:", error);
+      toast.error("Something went wrong. Please try again.");
     }
-    router.push("/");
   });
 
   useEffect(() => {
@@ -32,9 +39,12 @@ const TaskFormPage = ({ params }) => {
       if (taskFound) {
         setValue("title", taskFound.title);
         setValue("description", taskFound.description);
+      } else {
+        toast.error("Task not found");
+        router.push("/");
       }
     }
-  }, []);
+  }, [params.id, setValue, tasks, router]);
 
   return (
     <div className="min-h-screen flex justify-center items-center bg-gradient-to-tr from-gray-900 via-gray-800 to-gray-900 px-4">
@@ -97,7 +107,6 @@ const TaskFormPage = ({ params }) => {
         <button
           type="submit"
           className="w-full bg-[#408697] hover:bg-[#80b6c4] active:bg-[#408696] text-white font-semibold py-3 rounded-lg shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={false}
         >
           Save Task
         </button>

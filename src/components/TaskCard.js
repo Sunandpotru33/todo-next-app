@@ -7,24 +7,41 @@ export const TaskCard = ({ task }) => {
   const { deleteTask } = useTasks();
   const router = useRouter();
 
-  const handleDelete = (e) => {
+  const handleDelete = async (e) => {
     e.stopPropagation();
-    const accept = confirm("Are you sure you want to delete this task?");
-    if (accept) {
-      deleteTask(task.id);
+    const confirmDelete = confirm("Are you sure you want to delete this task?");
+    if (!confirmDelete) return;
+
+    try {
+      await deleteTask(task.id); 
       toast.success("Task deleted successfully");
+    } catch (error) {
+      console.error("Delete task error:", error);
+      toast.error("Failed to delete task. Please try again.");
     }
   };
 
   const handleEdit = (e) => {
     e.stopPropagation();
-    router.push(`/edit/${task.id}`);
+    try {
+      router.push(`/edit/${task.id}`);
+    } catch (error) {
+      console.error("Navigation error:", error);
+      toast.error("Failed to navigate to edit page.");
+    }
   };
 
   return (
     <div
       className="bg-gray-800 hover:bg-gray-700 transition duration-300 cursor-pointer p-6 sm:p-8 md:p-10 m-2 sm:m-4 rounded-2xl shadow-xl w-full max-w-7xl"
-      onClick={() => router.push(`/edit/${task.id}`)}
+      onClick={() => {
+        try {
+          router.push(`/edit/${task.id}`);
+        } catch (error) {
+          console.error("Navigation error:", error);
+          toast.error("Failed to navigate to edit page.");
+        }
+      }}
     >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl sm:text-3xl font-semibold text-white break-words">
